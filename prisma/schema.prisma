@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Product {
+  id              String    @id @default(uuid())
+  name            String
+  barcode         String    @unique
+  description     String?
+  stock           Int       @default(0)
+  price           Decimal
+  cost            Decimal
+  category        String
+  expirationDate  DateTime?
+  lastUpdated     DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+  supplier        Supplier  @relation(fields: [supplierId], references: [id])
+  supplierId      String
+  invoiceItems    InvoiceItem[]
+}
+
+model Supplier {
+  id          String    @id @default(uuid())
+  name        String
+  nit         String    @unique
+  address     String
+  phone       String
+  email       String
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  number          String        @unique
+  date            DateTime      @default(now())
+  customerName    String
+  customerNit     String
+  customerAddress String
+  customerPhone   String?
+  customerEmail   String?
+  subtotal        Decimal
+  tax            Decimal
+  total          Decimal
+  items          InvoiceItem[]
+  status         String        @default("PENDING") // PENDING, APPROVED, REJECTED
+  cufe           String?       // Código Único de Facturación Electrónica
+  qrCode         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  quantity    Int
+  unitPrice   Decimal
+  total       Decimal
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  invoiceId   String
+}
